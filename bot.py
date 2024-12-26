@@ -1,11 +1,25 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from flask import Flask
+import threading
+import os
 
 # Callback data constants
 MENU, STOCK, COMMANDE, NATURE, RHUM_VANILLE = range(5)
 
 # Chemin vers l'image locale
 IMAGE_PATH = "photo_2024-03-18_10-30-32.jpg"  # Remplacez par le chemin exact de votre image
+
+# Flask app pour l'écoute sur un port
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Le bot Telegram est actif."
+
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Afficher le menu principal avec une image."""
@@ -15,7 +29,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Envoyer l'image avec le menu principal
     if update.message:
         await update.message.reply_photo(
             photo=open(IMAGE_PATH, 'rb'),
@@ -48,7 +61,7 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         keyboard = [[InlineKeyboardButton("🔙𝐑𝐄𝐓𝐎𝐔𝐑🔙", callback_data=str(MENU))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_caption(
-        caption="📍𝐌𝐄𝐄𝐓-𝐔𝐏 :📍\n\n   🏢DEUIL LA BARRE 95170 \n\n   🗼PARIS A PARTIR DE 50€ \n\n𝐂𝐎𝐍𝐓𝐀𝐂𝐓𝐄𝐙 : @numba1seller",
+            caption="📍𝐌𝐄𝐄𝐓-𝐔𝐏 :📍\n\n   🏢DEUIL LA BARRE 95170 \n\n   🗼PARIS A PARTIR DE 50€ \n\n𝐂𝐎𝐍𝐓𝐀𝐂𝐓𝐄𝐙 : @numba1seller",
             reply_markup=reply_markup
         )
 
@@ -102,17 +115,16 @@ async def commande(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main() -> None:
     """Lancer le bot."""
-    # Remplacez 'YOUR_TELEGRAM_BOT_TOKEN' par le token de votre bot Telegram
-    application = Application.builder().token("7838117716:AAEMgHVZUuzxiwnliaN2Z5N1KicrldYrqro").build()
+    # Lancer le serveur Flask dans un thread séparé
+    threading.Thread(target=run_flask).start()
 
-    # Gestion des commandes et des interactions
+    # Lancer le bot Telegram
+    application = Application.builder().token("7838117716:AAEMgHVZUuzxiwnliaN2Z5N1KicrldYrqro").build()
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CallbackQueryHandler(menu, pattern=f"^{STOCK}$|^{COMMANDE}$"))
     application.add_handler(CallbackQueryHandler(stock, pattern=f"^{NATURE}$|^{RHUM_VANILLE}$|^{STOCK}$"))
     application.add_handler(CallbackQueryHandler(commande, pattern=f"^{COMMANDE}$"))
     application.add_handler(CallbackQueryHandler(start, pattern=f"^{MENU}$"))
-
-    # Démarrer le bot
     application.run_polling()
 
 if __name__ == '__main__':
