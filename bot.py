@@ -5,7 +5,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 MENU, STOCK, COMMANDE, NATURE, RHUM_VANILLE = range(5)
 
 # Chemin vers l'image locale
-IMAGE_PATH = "C:/Users/exbow/OneDrive//Bureau/woodski_bot/photo_2024-03-18_10-30-32.jpg"  # Remplacez par le chemin exact de votre image
+IMAGE_PATH = "photo_2024-03-18_10-30-32.jpg"  # Remplacez par le chemin exact de votre image
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Afficher le menu principal avec une image."""
